@@ -647,6 +647,9 @@
       <div id="playerWaiting">
         <p>Așteptăm ca host-ul să înceapă jocul...</p>
       </div>
+      <div id="pausedMessage" class="message-box hidden" style="background: rgba(255, 179, 0, 0.7);">
+        Jocul a fost pus pe pauză de către host. Te rog așteaptă.
+      </div>
     </div>
 
     <div id="playerScreen" class="screen">
@@ -654,6 +657,7 @@
       <p>Rolul tău în acest joc este:</p>
       <div class="role-display" id="assignedRole">Se atribuie rolurile...</div>
       <p>Baftă!</p>
+      <button id="pauseGameBtn" class="btn hidden">Pauză Joc</button>
     </div>
   </div>
 
@@ -714,6 +718,8 @@
     const messageBox = document.getElementById('messageBox');
     const messageBox2 = document.getElementById('messageBox2');
     const messageBox3 = document.getElementById('messageBox3');
+    const pauseGameBtn = document.getElementById('pauseGameBtn');
+    const pausedMessage = document.getElementById('pausedMessage');
 
     // 🔐 Anonymous authentication
     onAuthStateChanged(auth, async (user) => {
@@ -739,6 +745,7 @@
     document.getElementById('addRoleBtn').addEventListener('click', () => addRoleRow('', 1));
     document.getElementById('assignRolesBtn').addEventListener('click', assignRoles);
     document.getElementById('startGameBtn').addEventListener('click', startGame);
+    pauseGameBtn.addEventListener('click', pauseGame);
 
     // 🌐 UI Functions
     function showScreen(screen) { screens.forEach(s => s.classList.remove('active')); screen.classList.add('active'); }
@@ -786,6 +793,19 @@
                 assignedRole.textContent = currentPlayer.role;
                 showScreen(playerScreen);
               }
+            } else if (roomData.status === 'paused') {
+              showScreen(waitingScreen);
+              if (!isHost) {
+                hostControls.classList.add('hidden');
+                playerWaiting.classList.remove('hidden');
+                pausedMessage.classList.remove('hidden');
+              } else {
+                  hostControls.classList.remove('hidden');
+                  playerWaiting.classList.add('hidden');
+                  pausedMessage.classList.add('hidden');
+              }
+            } else if (roomData.status === 'waiting') {
+               pausedMessage.classList.add('hidden');
             }
         });
         
@@ -958,11 +978,42 @@
           showMessage(messageBox3, 'Camera nu mai există.');
           return;
         }
+
+        const playersData = roomDoc.data().players || {};
+        const playersArray = Object.values(playersData);
+        const hasMafia = playersArray.some(p => p.role === 'Mafiot');
+
+        if (!hasMafia) {
+          showMessage(messageBox3, 'Jocul nu poate începe. Nu există niciun mafiot atribuit.');
+          return; // Oprește executia funcției
+       }
+
         await updateDoc(roomRef, { status: 'started' });
         showMessage(messageBox3, 'Jocul a început!');
       } catch (err) {
         console.error(err);
         showMessage(messageBox3, 'Eroare la start joc.');
+      }
+      await updateDoc(roomRef, { status: 'started' });
+      if (isHost) {
+        pauseGameBtn.classList.remove('hidden');
+      }
+      showMessage(messageBox3, 'Jocul a început!');
+    }
+
+    //  pauseGame
+    async function pauseGame() {
+      if (!isHost) return;
+      try {
+        await updateDoc(roomRef, { status: 'paused' });
+        pauseGameBtn.classList.add('hidden');
+       showScreen(waitingScreen);
+       hostControls.classList.remove('hidden');
+       playerWaiting.classList.add('hidden');
+       showMessage(messageBox3, 'Jocul este în pauză. Poți modifica rolurile și reporni.');
+      } catch (err) {
+        console.error(err);
+        showMessage(messageBox, 'Eroare la punerea jocului pe pauză.');
       }
     }
 
@@ -983,19 +1034,7 @@
         setTimeout(() => {
           this.style.animation = 'explode 0.5s forwards';
         }, 10);
-        
-        // Efect de glonț
-        const bulletHole = document.createElement('div');
-        bulletHole.className = 'bullet-hole';
-        document.body.appendChild(bulletHole);
-        
-        const rect = this.getBoundingClientRect();
-        const x = rect.left + Math.random() * rect.width;
-        const y = rect.top + Math.random() * rect.height;
-        
-        bulletHole.style.left = `${x}px`;
-        bulletHole.style.top = `${y}px`;
-        
+
         setTimeout(() => {
           document.body.removeChild(bulletHole);
         }, 2000);
