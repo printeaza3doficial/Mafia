@@ -658,6 +658,7 @@
       <div class="role-display" id="assignedRole">Se atribuie rolurile...</div>
       <p>Baftă!</p>
       <button id="pauseGameBtn" class="btn hidden">Pauză Joc</button>
+      <button id="homeBtn" class="btn">Meniu Principal</button>
     </div>
   </div>
 
@@ -720,6 +721,7 @@
     const messageBox3 = document.getElementById('messageBox3');
     const pauseGameBtn = document.getElementById('pauseGameBtn');
     const pausedMessage = document.getElementById('pausedMessage');
+    const homeBtn = document.getElementById('homeBtn');
 
     // 🔐 Anonymous authentication
     onAuthStateChanged(auth, async (user) => {
@@ -746,6 +748,7 @@
     document.getElementById('assignRolesBtn').addEventListener('click', assignRoles);
     document.getElementById('startGameBtn').addEventListener('click', startGame);
     pauseGameBtn.addEventListener('click', pauseGame);
+    homeBtn.addEventListener('click', leaveRoom);
 
     // 🌐 UI Functions
     function showScreen(screen) { screens.forEach(s => s.classList.remove('active')); screen.classList.add('active'); }
@@ -786,6 +789,7 @@
             const roomData = docSnapshot.data();
             const allPlayers = Object.values(roomData.players || {});
             updatePlayersList(allPlayers);
+
             if (roomData.status === 'started') {
               const currentPlayer = roomData.players?.[playerId];
               if (currentPlayer?.role) {
@@ -793,19 +797,18 @@
                 assignedRole.textContent = currentPlayer.role;
                 showScreen(playerScreen);
               }
-            } else if (roomData.status === 'paused') {
-              showScreen(waitingScreen);
+            } else if (roomData.status === 'waiting') {
               if (!isHost) {
+                showScreen(waitingScreen);
                 hostControls.classList.add('hidden');
                 playerWaiting.classList.remove('hidden');
                 pausedMessage.classList.remove('hidden');
               } else {
+                  showScreen(waitingScreen);
                   hostControls.classList.remove('hidden');
                   playerWaiting.classList.add('hidden');
                   pausedMessage.classList.add('hidden');
               }
-            } else if (roomData.status === 'waiting') {
-               pausedMessage.classList.add('hidden');
             }
         });
         
@@ -850,7 +853,7 @@
           return; 
         }
         const roomData = roomDoc.data();
-        if (roomData.status !== 'waiting') { 
+        if (roomData.status !== 'waiting' && roomData.status !== 'paused') { 
           showMessage(messageBox2, 'Jocul a început deja.'); 
           return; 
         }
@@ -866,12 +869,34 @@
             const roomData = docSnapshot.data();
             const allPlayers = Object.values(roomData.players || {});
             updatePlayersList(allPlayers);
+
             if (roomData.status === 'started') {
               const currentPlayer = roomData.players?.[playerId];
               if (currentPlayer?.role) {
                 playerNameDisplay.textContent = playerName;
                 assignedRole.textContent = currentPlayer.role;
                 showScreen(playerScreen);
+              }
+            } else if (roomData.status === 'paused') { 
+              showScreen(waitingScreen);
+              if (!isHost) {
+                hostControls.classList.add('hidden');
+                playerWaiting.classList.remove('hidden');
+                pausedMessage.classList.remove('hidden');
+              } else {
+                hostControls.classList.remove('hidden');
+                playerWaiting.classList.add('hidden');
+                pausedMessage.classList.add('hidden');
+              }
+            } else if (roomData.status === 'waiting') {
+              showScreen(waitingScreen);
+              pausedMessage.classList.add('hidden');
+              if (isHost) {
+                hostControls.classList.remove('hidden');
+                playerWaiting.classList.add('hidden');
+              } else {
+                hostControls.classList.add('hidden');
+                playerWaiting.classList.remove('hidden');
               }
             }
         });
@@ -1005,17 +1030,44 @@
     async function pauseGame() {
       if (!isHost) return;
       try {
-        await updateDoc(roomRef, { status: 'paused' });
+        await updateDoc(roomRef, { status: 'waiting' });
+
         pauseGameBtn.classList.add('hidden');
-       showScreen(waitingScreen);
-       hostControls.classList.remove('hidden');
-       playerWaiting.classList.add('hidden');
-       showMessage(messageBox3, 'Jocul este în pauză. Poți modifica rolurile și reporni.');
+        showScreen(waitingScreen);
+        hostControls.classList.remove('hidden');
+        playerWaiting.classList.add('hidden');
+        showMessage(messageBox3, 'Jocul este în pauză. Poți modifica rolurile și reporni.');
       } catch (err) {
         console.error(err);
         showMessage(messageBox, 'Eroare la punerea jocului pe pauză.');
       }
     }
+
+    //leaveRoom
+    async function leaveRoom() {
+      try {
+        if (roomRef) {
+          const roomDoc = await getDoc(roomRef);
+          if (roomDoc.exists()) {
+            const playersData = roomDoc.data().players;
+            delete playersData[playerId];
+            await updateDoc(roomRef, { players: playersData });
+            if (roomUnsubscribe) {
+              roomUnsubscribe();
+              roomUnsubscribe = null;
+            }
+          }
+        }
+        currentRoomCode = '';
+        isHost = false;
+        playerName = '';
+        roomRef = null;
+        showScreen(mainScreen);
+      } catch (err) {
+        console.error("Eroare la părăsirea camerei:", err);
+      }
+    }
+
 
     // 🔧 Utilities
     function shuffleArray(a) { 
