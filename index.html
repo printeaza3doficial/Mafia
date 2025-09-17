@@ -630,7 +630,6 @@
     <div id="waitingScreen" class="screen">
       <div id="messageBox3" class="message-box"></div>
       <h2>Camera: <span id="displayRoomCode" class="room-code">-</span></h2>
-      <p>ID-ul tău de jucător: <span id="displayPlayerId"></span></p>
       <h3>Jucători în cameră:</h3>
       <ul id="playersList" class="player-list"></ul>
 
@@ -721,7 +720,6 @@
       if (user) {
         playerId = user.uid;
         updateConnectionStatus(true);
-        displayPlayerId.textContent = playerId;
       } else {
         updateConnectionStatus(false);
         await signInAnonymously(auth);
@@ -878,10 +876,11 @@
        players.forEach(p => {
         const li = document.createElement('li');
         let roleText = '';
-         if (p.isHost) {
-           roleText = ' (Povestitor)';
-          } else if (p.role) {
-             roleText = ` (${p.role})`;   }
+          if (p.isHost || (isHost && p.role)) {
+           roleText = ` (Rol: ${p.role || 'Neatribuit'})`;
+          }
+          li.innerHTML = `<span>${p.name} ${roleText}</span>`;
+          playersList.appendChild(li);
       });
     }
 
