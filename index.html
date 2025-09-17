@@ -1,760 +1,284 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Joc Mafia - Camere Multiplayer</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #1a1a2e;
-            color: #e6e6e6;
-            line-height: 1.6;
-            padding: 20px;
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-        
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-            padding: 10px;
-        }
-        
-        header {
-            text-align: center;
-            padding: 15px 0;
-            background-color: #16213e;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }
-        
-        h1 {
-            color: #ff5722;
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-        
-        h2 {
-            color: #4cc9f0;
-            margin: 15px 0;
-            font-size: 1.5rem;
-        }
-        
-        h3 {
-            color: #f72585;
-            margin: 12px 0;
-            font-size: 1.2rem;
-        }
-        
-        h4 {
-            color: #7209b7;
-            margin: 10px 0;
-        }
-        
-        .screen {
-            display: none;
-            background-color: #16213e;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            margin-bottom: 20px;
-        }
-        
-        .active {
-            display: block;
-        }
-        
-        .btn {
-            display: inline-block;
-            background-color: #0f3460;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 8px 5px;
-            transition: background-color 0.3s;
-            width: 100%;
-            max-width: 300px;
-        }
-        
-        .btn:hover {
-            background-color: #1a5dad;
-        }
-        
-        .btn-primary {
-            background-color: #ff5722;
-        }
-        
-        .btn-primary:hover {
-            background-color: #e64a19;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #4cc9f0;
-        }
-        
-        input[type="text"],
-        input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #0f3460;
-            border-radius: 5px;
-            background-color: #1a1a2e;
-            color: white;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        
-        .player-list {
-            list-style-type: none;
-            margin: 20px 0;
-        }
-        
-        .player-list li {
-            padding: 12px;
-            background-color: #1a1a2e;
-            margin-bottom: 8px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid #4cc9f0;
-        }
-        
-        .role-config {
-            margin: 15px 0;
-            padding: 15px;
-            background-color: #1a1a2e;
-            border-radius: 5px;
-            border: 1px solid #0f3460;
-        }
-        
-        .role-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .role-item input {
-            flex: 1;
-            margin: 0 5px;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        #playerScreen {
-            text-align: center;
-            padding: 30px 20px;
-        }
-        
-        .role-display {
-            font-size: 24px;
-            margin: 30px 0;
-            padding: 25px;
-            background: linear-gradient(135deg, #0f3460, #1a1a2e);
-            border-radius: 10px;
-            display: inline-block;
-            border: 2px solid #4cc9f0;
-            box-shadow: 0 0 15px rgba(76, 201, 240, 0.5);
-            color: #ff5722;
-            font-weight: bold;
-        }
-        
-        .instructions {
-            background-color: #1a1a2e;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border-left: 4px solid #ff5722;
-        }
-        
-        .instructions h4 {
-            color: #ff5722;
-            margin-top: 0;
-        }
-        
-        .connection-status {
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            text-align: center;
-        }
-        
-        .connected {
-            background-color: #2e7d32;
-        }
-        
-        .disconnected {
-            background-color: #c62828;
-        }
-        
-        .room-code {
-            font-size: 1.8rem;
-            color: #ff5722;
-            font-weight: bold;
-            margin: 15px 0;
-            padding: 10px;
-            background-color: #1a1a2e;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        #messageBox {
-            background-color: #f72585;
-            color: #1a1a2e;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
-            display: none;
-        }
-        
-        @media (min-width: 768px) {
-            .btn {
-                width: auto;
-            }
-            
-            .role-item {
-                flex-wrap: nowrap;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joc Mafia - Camere Multiplayer</title>
+  <style>
+    /* --- CSS neschimbat --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1a1a2e; color: #e6e6e6; line-height: 1.6; padding: 20px; max-width: 100%; overflow-x: hidden; }
+    .container { max-width: 100%; margin: 0 auto; padding: 10px; }
+    header { text-align: center; padding: 15px 0; background-color: #16213e; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); }
+    h1 { color: #ff5722; font-size: 2rem; margin-bottom: 10px; }
+    h2 { color: #4cc9f0; margin: 15px 0; font-size: 1.5rem; }
+    h3 { color: #f72585; margin: 12px 0; font-size: 1.2rem; }
+    h4 { color: #7209b7; margin: 10px 0; }
+    .screen { display: none; background-color: #16213e; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); margin-bottom: 20px; }
+    .active { display: block; }
+    .btn { display: inline-block; background-color: #0f3460; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 8px 5px; transition: background-color 0.3s; width: 100%; max-width: 300px; }
+    .btn:hover { background-color: #1a5dad; }
+    .btn-primary { background-color: #ff5722; }
+    .btn-primary:hover { background-color: #e64a19; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: bold; color: #4cc9f0; }
+    input[type="text"], input[type="number"] { width: 100%; padding: 12px; border: 1px solid #0f3460; border-radius: 5px; background-color: #1a1a2e; color: white; font-size: 16px; margin-bottom: 10px; }
+    .player-list { list-style-type: none; margin: 20px 0; }
+    .player-list li { padding: 12px; background-color: #1a1a2e; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #4cc9f0; }
+    .role-config { margin: 15px 0; padding: 15px; background-color: #1a1a2e; border-radius: 5px; border: 1px solid #0f3460; }
+    .role-item { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+    .role-item input { flex: 1; margin: 0 5px; }
+    .hidden { display: none; }
+    #playerScreen { text-align: center; padding: 30px 20px; }
+    .role-display { font-size: 24px; margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #0f3460, #1a1a2e); border-radius: 10px; display: inline-block; border: 2px solid #4cc9f0; box-shadow: 0 0 15px rgba(76, 201, 240, 0.5); color: #ff5722; font-weight: bold; }
+    .instructions { background-color: #1a1a2e; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #ff5722; }
+    .instructions h4 { color: #ff5722; margin-top: 0; }
+    .connection-status { padding: 10px; border-radius: 5px; margin: 10px 0; text-align: center; }
+    .connected { background-color: #2e7d32; }
+    .disconnected { background-color: #c62828; }
+    .room-code { font-size: 1.8rem; color: #ff5722; font-weight: bold; margin: 15px 0; padding: 10px; background-color: #1a1a2e; border-radius: 8px; text-align: center; }
+    .message-box { background-color: #f72585; color: #1a1a2e; padding: 10px; border-radius: 5px; margin-bottom: 20px; text-align: center; font-weight: bold; display: none; }
+    @media (min-width: 768px) { .btn { width: auto; } .role-item { flex-wrap: nowrap; } }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Joc Mafia</h1>
-            <p>O experiență interactivă de joc social</p>
-        </header>
-        
-        <div id="connectionStatus" class="connection-status disconnected">Deconectat</div>
-        
-        <!-- Ecranul principal -->
-        <div id="mainScreen" class="screen active">
-            <h2>Bun venit!</h2>
-            <p>Pentru a începe, fie creează o cameră nouă, fie alătură-te uneia existente.</p>
-            <div class="instructions">
-                <h4>Cum funcționează:</h4>
-                <p>1. Host-ul creează o cameră și primește un cod</p>
-                <p>2. Jucătorii inserează codul camerei pentru a se alătura</p>
-                <p>3. Host-ul configurează rolurile și începe jocul</p>
-            </div>
-            <button id="createRoomBtn" class="btn btn-primary">Creează Cameră</button>
-            <button id="joinRoomBtn" class="btn">Alătură-te Camerei</button>
-        </div>
-        
-        <!-- Ecranul de creare cameră -->
-        <div id="createRoomScreen" class="screen">
-            <h2>Creează o Cameră Nouă</h2>
-            <div id="messageBox" class="message-box"></div>
-            <div class="form-group">
-                <label for="hostName">Numele tău:</label>
-                <input type="text" id="hostName" placeholder="Introdu numele tău">
-            </div>
-            <button id="createRoomConfirmBtn" class="btn btn-primary">Creează Cameră</button>
-            <button id="backToMainBtn" class="btn">Înapoi</button>
-        </div>
-        
-        <!-- Ecranul de alăturare cameră -->
-        <div id="joinRoomScreen" class="screen">
-            <h2>Alătură-te unei Camere</h2>
-            <div id="messageBox2" class="message-box"></div>
-            <div class="form-group">
-                <label for="playerName">Numele tău:</label>
-                <input type="text" id="playerName" placeholder="Introdu numele tău">
-            </div>
-            <div class="form-group">
-                <label for="roomCode">Codul Camerei:</label>
-                <input type="text" id="roomCode" placeholder="Introdu codul camerei">
-            </div>
-            <button id="joinRoomConfirmBtn" class="btn btn-primary">Alătură-te</button>
-            <button id="backToMainBtn2" class="btn">Înapoi</button>
-        </div>
-        
-        <!-- Ecranul de așteptare -->
-        <div id="waitingScreen" class="screen">
-            <h2>Camera: <span id="displayRoomCode" class="room-code">-</span></h2>
-            <p>ID-ul tău de jucător: <span id="displayPlayerId"></span></p>
-            <h3>Jucători în cameră:</h3>
-            <ul id="playersList" class="player-list">
-                <!-- Lista jucătorilor va fi populată din JavaScript -->
-            </ul>
-            
-            <div id="hostControls" class="hidden">
-                <h3>Control Host</h3>
-                
-                <div class="role-config">
-                    <h4>Configurează Rolurile</h4>
-                    <div id="rolesContainer">
-                        <!-- Rolurile vor fi adăugate din JavaScript -->
-                    </div>
-                    <button id="addRoleBtn" class="btn">Adaugă Rol</button>
-                </div>
-                
-                <button id="assignRolesBtn" class="btn">Atribuie Roluri Aleatoriu</button>
-                <button id="startGameBtn" class="btn btn-primary">Start Joc</button>
-            </div>
-            
-            <div id="playerWaiting">
-                <p>Așteptăm ca host-ul să înceapă jocul...</p>
-            </div>
-        </div>
-        
-        <!-- Ecranul jucătorului cu rolul atribuit -->
-        <div id="playerScreen" class="screen">
-            <h2>Salut, <span id="playerNameDisplay">Jucător</span>!</h2>
-            <p>Rolul tău în acest joc este:</p>
-            <div class="role-display" id="assignedRole">Se atribuie rolurile...</div>
-            <p>Baftă!</p>
-        </div>
+  <div class="container">
+    <header>
+      <h1>Joc Mafia</h1>
+      <p>O experiență interactivă de joc social</p>
+    </header>
+
+    <div id="connectionStatus" class="connection-status disconnected">Deconectat</div>
+
+    <!-- Ecranele -->
+    <div id="mainScreen" class="screen active">
+      <h2>Bun venit!</h2>
+      <p>Pentru a începe, fie creează o cameră nouă, fie alătură-te uneia existente.</p>
+      <div class="instructions">
+        <h4>Cum funcționează:</h4>
+        <p>1. Host-ul creează o cameră și primește un cod</p>
+        <p>2. Jucătorii inserează codul camerei pentru a se alătura</p>
+        <p>3. Host-ul configurează rolurile și începe jocul</p>
+      </div>
+      <button id="createRoomBtn" class="btn btn-primary">Creează Cameră</button>
+      <button id="joinRoomBtn" class="btn">Alătură-te Camerei</button>
     </div>
 
-    <script>
-        // Configurare Firebase
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        // Inițializare Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(app);
-        const auth = firebase.auth(app);
+    <div id="createRoomScreen" class="screen">
+      <h2>Creează o Cameră Nouă</h2>
+      <div id="messageBox" class="message-box"></div>
+      <div class="form-group">
+        <label for="hostName">Numele tău:</label>
+        <input type="text" id="hostName" placeholder="Introdu numele tău">
+      </div>
+      <button id="createRoomConfirmBtn" class="btn btn-primary">Creează Cameră</button>
+      <button id="backToMainBtn" class="btn">Înapoi</button>
+    </div>
 
-        // Activare persistență offline
-        db.enablePersistence().catch(err => console.log('Eroare la activarea persistenței: ', err));
-        
-        // Variabile globale
-        let currentRoomCode = '';
-        let isHost = false;
-        let playerName = '';
-        let playerId = '';
-        let roomRef = null;
-        let playersRef = null;
-        let rolesConfig = [];
-        let roomUnsubscribe = null;
-        
-        // Elemente DOM
-        const screens = document.querySelectorAll('.screen');
-        const mainScreen = document.getElementById('mainScreen');
-        const createRoomScreen = document.getElementById('createRoomScreen');
-        const joinRoomScreen = document.getElementById('joinRoomScreen');
-        const waitingScreen = document.getElementById('waitingScreen');
-        const playerScreen = document.getElementById('playerScreen');
-        const connectionStatus = document.getElementById('connectionStatus');
-        
-        const hostNameInput = document.getElementById('hostName');
-        const playerNameInput = document.getElementById('playerName');
-        const roomCodeInput = document.getElementById('roomCode');
-        const displayRoomCode = document.getElementById('displayRoomCode');
-        const playersList = document.getElementById('playersList');
-        const hostControls = document.getElementById('hostControls');
-        const playerWaiting = document.getElementById('playerWaiting');
-        const rolesContainer = document.getElementById('rolesContainer');
-        const assignedRole = document.getElementById('assignedRole');
-        const playerNameDisplay = document.getElementById('playerNameDisplay');
-        const displayPlayerId = document.getElementById('displayPlayerId');
-        const messageBox = document.getElementById('messageBox');
-        const messageBox2 = document.getElementById('messageBox2');
-        
-        // Butoane
-        document.getElementById('createRoomBtn').addEventListener('click', () => showScreen(createRoomScreen));
-        document.getElementById('joinRoomBtn').addEventListener('click', () => showScreen(joinRoomScreen));
-        document.getElementById('backToMainBtn').addEventListener('click', () => {
-            messageBox.style.display = 'none';
-            showScreen(mainScreen);
-        });
-        document.getElementById('backToMainBtn2').addEventListener('click', () => {
-            messageBox2.style.display = 'none';
-            showScreen(mainScreen);
-        });
-        
-        document.getElementById('createRoomConfirmBtn').addEventListener('click', createRoom);
-        document.getElementById('joinRoomConfirmBtn').addEventListener('click', joinRoom);
-        document.getElementById('addRoleBtn').addEventListener('click', addRoleRow);
-        document.getElementById('assignRolesBtn').addEventListener('click', assignRoles);
-        document.getElementById('startGameBtn').addEventListener('click', startGame);
-        
-        // Funcții
-        function showScreen(screen) {
-            screens.forEach(s => s.classList.remove('active'));
-            screen.classList.add('active');
-        }
-        
-        function showMessage(element, message) {
-            element.textContent = message;
-            element.style.display = 'block';
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 5000);
-        }
+    <div id="joinRoomScreen" class="screen">
+      <h2>Alătură-te unei Camere</h2>
+      <div id="messageBox2" class="message-box"></div>
+      <div class="form-group">
+        <label for="playerName">Numele tău:</label>
+        <input type="text" id="playerName" placeholder="Introdu numele tău">
+      </div>
+      <div class="form-group">
+        <label for="roomCode">Codul Camerei:</label>
+        <input type="text" id="roomCode" placeholder="Introdu codul camerei">
+      </div>
+      <button id="joinRoomConfirmBtn" class="btn btn-primary">Alătură-te</button>
+      <button id="backToMainBtn2" class="btn">Înapoi</button>
+    </div>
 
-        function generateRoomCode() {
-            return Math.floor(1000 + Math.random() * 9000).toString();
-        }
-        
-        function updateConnectionStatus(connected) {
-            if (connected) {
-                connectionStatus.textContent = 'Conectat';
-                connectionStatus.className = 'connection-status connected';
-            } else {
-                connectionStatus.textContent = 'Deconectat';
-                connectionStatus.className = 'connection-status disconnected';
-            }
-        }
-        
-        // Inițializarea autentificării
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                playerId = user.uid;
-                updateConnectionStatus(true);
-                displayPlayerId.textContent = playerId;
-                console.log("Autentificare reușită! ID utilizator:", playerId);
-            } else {
-                updateConnectionStatus(false);
-                console.log("Utilizator deconectat. Așteptăm re-autentificarea...");
-            }
-        });
+    <div id="waitingScreen" class="screen">
+      <h2>Camera: <span id="displayRoomCode" class="room-code">-</span></h2>
+      <p>ID-ul tău de jucător: <span id="displayPlayerId"></span></p>
+      <h3>Jucători în cameră:</h3>
+      <ul id="playersList" class="player-list"></ul>
 
-        async function ensureAuthenticated() {
-            if (!auth.currentUser) {
-                if (initialAuthToken) {
-                    await auth.signInWithCustomToken(initialAuthToken);
-                } else {
-                    await auth.signInAnonymously();
-                }
-            }
-            playerId = auth.currentUser.uid;
-        }
-        
-        async function createRoom() {
-            const btn = document.getElementById('createRoomConfirmBtn');
-            btn.textContent = 'Se încarcă...';
-            btn.disabled = true;
-            
-            try {
-                await ensureAuthenticated();
-            } catch (error) {
-                console.error('Eroare la autentificare:', error);
-                showMessage(messageBox, 'Eroare la autentificare. Încearcă să reîncarci pagina.');
-                btn.textContent = 'Creează Cameră';
-                btn.disabled = false;
-                return;
-            }
+      <div id="hostControls" class="hidden">
+        <h3>Control Host</h3>
+        <div class="role-config">
+          <h4>Configurează Rolurile</h4>
+          <div id="rolesContainer"></div>
+          <button id="addRoleBtn" class="btn">Adaugă Rol</button>
+        </div>
+        <button id="assignRolesBtn" class="btn">Atribuie Roluri Aleatoriu</button>
+        <button id="startGameBtn" class="btn btn-primary">Start Joc</button>
+      </div>
 
-            const name = hostNameInput.value.trim();
-            if (!name) {
-                showMessage(messageBox, 'Introdu un nume!');
-                btn.textContent = 'Creează Cameră';
-                btn.disabled = false;
-                return;
-            }
-            
-            try {
-                playerName = name;
-                isHost = true;
-                currentRoomCode = generateRoomCode();
-                
-                roomRef = db.collection(`artifacts/${appId}/public/data/rooms`).doc(currentRoomCode);
-                await roomRef.set({
-                    code: currentRoomCode,
-                    hostId: playerId,
-                    status: 'waiting',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                playersRef = roomRef.collection('players');
-                
-                await playersRef.doc(playerId).set({
-                    name: playerName,
-                    id: playerId,
-                    isHost: true,
-                    joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                displayRoomCode.textContent = currentRoomCode;
-                
-                // Ascultă pentru jucători noi
-                playersRef.onSnapshot(snapshot => {
-                    const players = [];
-                    snapshot.forEach(doc => {
-                        players.push(doc.data());
-                    });
-                    updatePlayersList(players);
-                });
-                
-                // Ascultă pentru schimbări de stare (în caz că host-ul e și jucător)
-                roomUnsubscribe = roomRef.onSnapshot(doc => {
-                    if (doc.exists) {
-                        const roomData = doc.data();
-                        if (roomData.status === 'started' && roomData.players) {
-                            const playerData = roomData.players[playerId];
-                            if (playerData && playerData.role) {
-                                playerNameDisplay.textContent = playerName;
-                                assignedRole.textContent = playerData.role;
-                                showScreen(playerScreen);
-                            }
-                        }
-                    }
-                });
+      <div id="playerWaiting">
+        <p>Așteptăm ca host-ul să înceapă jocul...</p>
+      </div>
+    </div>
 
-                hostControls.classList.remove('hidden');
-                playerWaiting.classList.add('hidden');
-                
-                addRoleRow('Mafiot', 2);
-                addRoleRow('Polițist', 1);
-                addRoleRow('Doctor', 1);
-                addRoleRow('Civil', 4);
-                
-                showScreen(waitingScreen);
-                
-            } catch (error) {
-                console.error('Eroare la crearea camerei:', error);
-                showMessage(messageBox, 'A apărut o eroare. Încearcă din nou.');
-            } finally {
-                btn.textContent = 'Creează Cameră';
-                btn.disabled = false;
-            }
-        }
-        
-        async function joinRoom() {
-            const btn = document.getElementById('joinRoomConfirmBtn');
-            btn.textContent = 'Se încarcă...';
-            btn.disabled = true;
-            
-            try {
-                await ensureAuthenticated();
-            } catch (error) {
-                console.error('Eroare la autentificare:', error);
-                showMessage(messageBox2, 'Eroare la autentificare. Încearcă să reîncarci pagina.');
-                btn.textContent = 'Alătură-te';
-                btn.disabled = false;
-                return;
-            }
-            
-            const name = playerNameInput.value.trim();
-            const code = roomCodeInput.value.trim();
-            
-            if (!name) {
-                showMessage(messageBox2, 'Introdu un nume!');
-                btn.textContent = 'Alătură-te';
-                btn.disabled = false;
-                return;
-            }
-            
-            if (!code) {
-                showMessage(messageBox2, 'Introdu codul camerei!');
-                btn.textContent = 'Alătură-te';
-                btn.disabled = false;
-                return;
-            }
-            
-            playerName = name;
-            currentRoomCode = code;
-            isHost = false;
-            
-            try {
-                roomRef = db.collection(`artifacts/${appId}/public/data/rooms`).doc(currentRoomCode);
-                const roomDoc = await roomRef.get();
-                
-                if (!roomDoc.exists) {
-                    showMessage(messageBox2, 'Camera nu există. Verifică codul.');
-                    btn.textContent = 'Alătură-te';
-                    btn.disabled = false;
-                    return;
-                }
-                
-                if (roomDoc.data().status !== 'waiting') {
-                    showMessage(messageBox2, 'Jocul a început deja în această cameră.');
-                    btn.textContent = 'Alătură-te';
-                    btn.disabled = false;
-                    return;
-                }
-                
-                playersRef = roomRef.collection('players');
-                
-                await playersRef.doc(playerId).set({
-                    name: playerName,
-                    id: playerId,
-                    isHost: false,
-                    joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                displayRoomCode.textContent = currentRoomCode;
-                
-                playersRef.onSnapshot(snapshot => {
-                    const players = [];
-                    snapshot.forEach(doc => {
-                        players.push(doc.data());
-                    });
-                    updatePlayersList(players);
-                });
-                
-                // Ascultă pentru începerea jocului
-                roomUnsubscribe = roomRef.onSnapshot(doc => {
-                    const roomData = doc.data();
-                    if (doc.exists && roomData.status === 'started' && roomData.players) {
-                        const playerData = roomData.players[playerId];
-                        if (playerData && playerData.role) {
-                            playerNameDisplay.textContent = playerName;
-                            assignedRole.textContent = playerData.role;
-                            showScreen(playerScreen);
-                        }
-                    }
-                });
-                
-                hostControls.classList.add('hidden');
-                playerWaiting.classList.remove('hidden');
-                
-                showScreen(waitingScreen);
-                
-            } catch (error) {
-                console.error('Eroare la alăturarea la cameră:', error);
-                showMessage(messageBox2, 'A apărut o eroare. Încearcă din nou.');
-            } finally {
-                btn.textContent = 'Alătură-te';
-                btn.disabled = false;
-            }
-        }
-        
-        function updatePlayersList(players) {
-            playersList.innerHTML = '';
-            players.forEach(player => {
-                const li = document.createElement('li');
-                li.textContent = player.name;
-                if (player.isHost) {
-                    li.innerHTML += ' <strong>(Host)</strong>';
-                }
-                if (player.id === playerId) {
-                    li.innerHTML += ' <strong>(Tu)</strong>';
-                }
-                playersList.appendChild(li);
-            });
-        }
-        
-        function addRoleRow(roleName = '', count = 1) {
-            const roleDiv = document.createElement('div');
-            roleDiv.className = 'role-item';
-            
-            roleDiv.innerHTML = `
-                <input type="text" placeholder="Nume rol" value="${roleName}" class="role-name">
-                <div>
-                    <label>Număr: </label>
-                    <input type="number" value="${count}" min="1" class="role-count" style="width: 60px;">
-                </div>
-            `;
-            
-            rolesContainer.appendChild(roleDiv);
-        }
-        
-        async function assignRoles() {
-            rolesConfig = [];
-            const roleItems = rolesContainer.querySelectorAll('.role-item');
-            
-            roleItems.forEach(item => {
-                const name = item.querySelector('.role-name').value.trim();
-                const count = parseInt(item.querySelector('.role-count').value);
-                
-                if (name && count > 0) {
-                    for (let i = 0; i < count; i++) {
-                        rolesConfig.push(name);
-                    }
-                }
-            });
-            
-            const playersSnapshot = await playersRef.get();
-            const playerCount = playersSnapshot.size;
-            
-            if (rolesConfig.length < playerCount) {
-                showMessage(messageBox, `Nu sunt suficiente roluri. Ai ${rolesConfig.length} roluri dar ${playerCount} jucători.`);
-                return;
-            }
-            
-            if (rolesConfig.length > playerCount) {
-                showMessage(messageBox, `Prea multe roluri. Ai ${rolesConfig.length} roluri dar doar ${playerCount} jucători.`);
-                return;
-            }
-            
-            for (let i = rolesConfig.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [rolesConfig[i], rolesConfig[j]] = [rolesConfig[j], rolesConfig[i]];
-            }
-            
-            showMessage(messageBox, 'Rolurile au fost configurate! Apasă "Start Joc" pentru a distribui rolurile.');
-        }
-        
-        async function startGame() {
-            if (rolesConfig.length === 0) {
-                showMessage(messageBox, 'Configurează mai întâi rolurile!');
-                return;
-            }
-            
-            try {
-                const playersSnapshot = await playersRef.get();
-                const playersData = {};
-                let index = 0;
-                
-                playersSnapshot.forEach(doc => {
-                    const playerData = doc.data();
-                    playerData.role = rolesConfig[index++];
-                    playersData[playerData.id] = playerData;
-                });
-                
-                await roomRef.update({
-                    status: 'started',
-                    players: playersData
-                });
-                
-                // Logica pentru afișarea rolului se va declanșa prin listener-ul onSnapshot
-            } catch (error) {
-                console.error('Eroare la start joc:', error);
-                showMessage(messageBox, 'A apărut o eroare. Încearcă din nou.');
-            }
-        }
-        
-        // Curăță resursele la închidere
-        window.addEventListener('beforeunload', async () => {
-            if (playersRef && playerId) {
-                try {
-                    await playersRef.doc(playerId).delete();
-                    if (isHost && roomRef) {
-                        await roomRef.delete();
-                    }
-                    if (roomUnsubscribe) {
-                        roomUnsubscribe();
-                    }
-                } catch (e) {
-                    console.error("Eroare la curățarea datelor:", e);
-                }
-            }
-        });
+    <div id="playerScreen" class="screen">
+      <h2>Salut, <span id="playerNameDisplay">Jucător</span>!</h2>
+      <p>Rolul tău în acest joc este:</p>
+      <div class="role-display" id="assignedRole">Se atribuie rolurile...</div>
+      <p>Baftă!</p>
+    </div>
+  </div>
 
-        // Inițializare
-        addRoleRow();
-    </script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, getDoc, updateDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+
+    // 🔥 Config Firebase din proiectul tău
+    const firebaseConfig = {
+      apiKey: "AIzaSyBFchkNH-ccIDfSF8QGJYlGfRi1giNm08A",
+      authDomain: "mafia-ffa2d.firebaseapp.com",
+      projectId: "mafia-ffa2d",
+      storageBucket: "mafia-ffa2d.firebasestorage.app",
+      messagingSenderId: "34869116142",
+      appId: "1:34869116142:web:5b77e070663e64436bc7ff",
+      measurementId: "G-FY6TLT94X9"
+    };
+
+    // Inițializare Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const appId = "mafia-ffa2d";
+
+    let currentRoomCode = '';
+    let isHost = false;
+    let playerName = '';
+    let playerId = '';
+    let roomRef = null;
+    let playersRef = null;
+    let rolesConfig = [];
+    let roomUnsubscribe = null;
+
+    // Elemente DOM
+    const screens = document.querySelectorAll('.screen');
+    const mainScreen = document.getElementById('mainScreen');
+    const createRoomScreen = document.getElementById('createRoomScreen');
+    const joinRoomScreen = document.getElementById('joinRoomScreen');
+    const waitingScreen = document.getElementById('waitingScreen');
+    const playerScreen = document.getElementById('playerScreen');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const hostNameInput = document.getElementById('hostName');
+    const playerNameInput = document.getElementById('playerName');
+    const roomCodeInput = document.getElementById('roomCode');
+    const displayRoomCode = document.getElementById('displayRoomCode');
+    const playersList = document.getElementById('playersList');
+    const hostControls = document.getElementById('hostControls');
+    const playerWaiting = document.getElementById('playerWaiting');
+    const rolesContainer = document.getElementById('rolesContainer');
+    const assignedRole = document.getElementById('assignedRole');
+    const playerNameDisplay = document.getElementById('playerNameDisplay');
+    const displayPlayerId = document.getElementById('displayPlayerId');
+    const messageBox = document.getElementById('messageBox');
+    const messageBox2 = document.getElementById('messageBox2');
+
+    // 🔐 Autentificare anonimă
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        playerId = user.uid;
+        updateConnectionStatus(true);
+        displayPlayerId.textContent = playerId;
+      } else {
+        updateConnectionStatus(false);
+        await signInAnonymously(auth);
+      }
+    });
+
+    // 🎮 Event Listeners
+    document.getElementById('createRoomBtn').addEventListener('click', () => {
+      showScreen(createRoomScreen);
+      addDefaultRoles();
+    });
+    document.getElementById('joinRoomBtn').addEventListener('click', () => showScreen(joinRoomScreen));
+    document.getElementById('backToMainBtn').addEventListener('click', () => { messageBox.style.display = 'none'; showScreen(mainScreen); });
+    document.getElementById('backToMainBtn2').addEventListener('click', () => { messageBox2.style.display = 'none'; showScreen(mainScreen); });
+    document.getElementById('createRoomConfirmBtn').addEventListener('click', createRoom);
+    document.getElementById('joinRoomConfirmBtn').addEventListener('click', joinRoom);
+    document.getElementById('addRoleBtn').addEventListener('click', () => addRoleRow('', 1));
+    document.getElementById('assignRolesBtn').addEventListener('click', assignRoles);
+    document.getElementById('startGameBtn').addEventListener('click', startGame);
+
+    // 🌐 Funcții UI
+    function showScreen(screen) { screens.forEach(s => s.classList.remove('active')); screen.classList.add('active'); }
+    function showMessage(element, message) { element.textContent = message; element.style.display = 'block'; setTimeout(() => { element.style.display = 'none'; }, 5000); }
+    function generateRoomCode() { return Math.floor(1000 + Math.random() * 9000).toString(); }
+    function updateConnectionStatus(connected) { connectionStatus.textContent = connected ? 'Conectat' : 'Deconectat'; connectionStatus.className = connected ? 'connection-status connected' : 'connection-status disconnected'; }
+
+    // 🏠 Creare Cameră
+    async function createRoom() {
+      const btn = document.getElementById('createRoomConfirmBtn');
+      btn.textContent = 'Se încarcă...'; btn.disabled = true;
+      try {
+        const name = hostNameInput.value.trim();
+        if (!name) { showMessage(messageBox, 'Introdu un nume!'); return; }
+        playerName = name; isHost = true; currentRoomCode = generateRoomCode();
+        roomRef = doc(db, `rooms`, currentRoomCode);
+        await setDoc(roomRef, { code: currentRoomCode, hostId: playerId, status: 'waiting', createdAt: Date.now() });
+        playersRef = collection(roomRef, 'players');
+        await setDoc(doc(playersRef, playerId), { name: playerName, id: playerId, isHost: true, joinedAt: Date.now() });
+        displayRoomCode.textContent = currentRoomCode;
+        onSnapshot(playersRef, snap => { updatePlayersList(snap.docs.map(d => d.data())); });
+        onSnapshot(roomRef, d => { if (d.exists() && d.data().status === 'started' && d.data().players) { const p = d.data().players[playerId]; if (p?.role) { playerNameDisplay.textContent = playerName; assignedRole.textContent = p.role; showScreen(playerScreen); } } });
+        hostControls.classList.remove('hidden'); playerWaiting.classList.add('hidden'); showScreen(waitingScreen);
+      } catch (err) { console.error(err); showMessage(messageBox, 'Eroare la crearea camerei.'); }
+      finally { btn.textContent = 'Creează Cameră'; btn.disabled = false; }
+    }
+
+    // 👥 Join Room
+    async function joinRoom() {
+      const btn = document.getElementById('joinRoomConfirmBtn');
+      btn.textContent = 'Se încarcă...'; btn.disabled = true;
+      try {
+        const name = playerNameInput.value.trim(); const code = roomCodeInput.value.trim();
+        if (!name) { showMessage(messageBox2, 'Introdu un nume!'); return; }
+        if (!code) { showMessage(messageBox2, 'Introdu codul camerei!'); return; }
+        playerName = name; currentRoomCode = code; isHost = false;
+        roomRef = doc(db, `rooms`, currentRoomCode); const roomDoc = await getDoc(roomRef);
+        if (!roomDoc.exists()) { showMessage(messageBox2, 'Camera nu există.'); return; }
+        if (roomDoc.data().status !== 'waiting') { showMessage(messageBox2, 'Jocul a început deja.'); return; }
+        playersRef = collection(roomRef, 'players');
+        await setDoc(doc(playersRef, playerId), { name: playerName, id: playerId, isHost: false, joinedAt: Date.now() });
+        displayRoomCode.textContent = currentRoomCode;
+        onSnapshot(playersRef, snap => { updatePlayersList(snap.docs.map(d => d.data())); });
+        onSnapshot(roomRef, d => { if (d.exists() && d.data().status === 'started' && d.data().players) { const p = d.data().players[playerId]; if (p?.role) { playerNameDisplay.textContent = playerName; assignedRole.textContent = p.role; showScreen(playerScreen); } } });
+        hostControls.classList.add('hidden'); playerWaiting.classList.remove('hidden'); showScreen(waitingScreen);
+      } catch (err) { console.error(err); showMessage(messageBox2, 'Eroare la conectare.'); }
+      finally { btn.textContent = 'Alătură-te'; btn.disabled = false; }
+    }
+
+    // 🔄 Lista Jucători
+    function updatePlayersList(players) {
+      playersList.innerHTML = '';
+      players.forEach(p => { const li = document.createElement('li'); li.textContent = p.name + (p.isHost ? ' (Host)' : ''); playersList.appendChild(li); });
+    }
+
+    // ⚙️ Roluri
+    function addRoleRow(roleName = '', count = 1) {
+      const div = document.createElement('div'); div.className = 'role-item';
+      div.innerHTML = `<input type="text" placeholder="Nume rol" value="${roleName}"><input type="number" min="1" value="${count}"><button class="btn">Șterge</button>`;
+      div.querySelector('button').addEventListener('click', () => div.remove());
+      rolesContainer.appendChild(div);
+    }
+    function addDefaultRoles() { rolesContainer.innerHTML = ''; addRoleRow('Mafia', 2); addRoleRow('Doctor', 1); addRoleRow('Detectiv', 1); addRoleRow('Cetățean', 4); }
+
+    // 🎲 Atribuire roluri
+    async function assignRoles() {
+      try {
+        const playersSnap = await getDocs(playersRef); const players = playersSnap.docs.map(d => d.data()); let roles = [];
+        rolesContainer.querySelectorAll('.role-item').forEach(div => { const inputs = div.querySelectorAll('input'); const name = inputs[0].value.trim(); const count = parseInt(inputs[1].value); if (name && count > 0) { for (let i = 0; i < count; i++) roles.push(name); } });
+        if (roles.length < players.length) { alert('Nu sunt destule roluri pentru toți jucătorii!'); return; }
+        roles = shuffleArray(roles).slice(0, players.length); const playersWithRoles = {};
+        players.forEach((p, i) => { playersWithRoles[p.id] = { ...p, role: roles[i] }; });
+        await updateDoc(roomRef, { players: playersWithRoles }); alert('Rolurile au fost atribuite!');
+      } catch (err) { console.error(err); alert('Eroare la atribuirea rolurilor.'); }
+    }
+
+    // 🚀 Start Joc
+    async function startGame() { try { const roomDoc = await getDoc(roomRef); if (!roomDoc.exists()) return; await updateDoc(roomRef, { status: 'started' }); alert('Jocul a început!'); } catch (err) { console.error(err); alert('Eroare la start joc.'); } }
+
+    // 🔧 Utilitare
+    function shuffleArray(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  </script>
 </body>
 </html>
