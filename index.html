@@ -3,161 +3,305 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Joc Mafia - Camere Multiplayer</title>
+  <title>Mafia - Joc de Rol</title>
   <style>
-    /* Global styles and a general reset for boxes, margins, and padding */
+    /* Reset și stiluri de bază */
     * { 
       box-sizing: border-box; 
       margin: 0; 
       padding: 0; 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      font-family: 'Arial', sans-serif; 
     }
     
     body { 
-      background-color: #1a1a2e; 
+      background: #000000 url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgcGF0dGVyblRyYW5zZm9ybT0icm90YXRlKDQ1KSI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjIiIGhlaWdodD0iMiIgZmlsbD0iIzMwMDAwMCIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzEwMDAwMCIvPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjcGF0dGVybikiLz48L3N2Zz4=') fixed;
       color: #e6e6e6; 
       line-height: 1.6; 
-      padding: 20px; 
+      padding: 0;
       max-width: 100%; 
-      overflow-x: hidden; 
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+    
+    /* Efect de sânge/foc în fundal */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(200, 0, 0, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(150, 0, 0, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 40% 80%, rgba(120, 0, 0, 0.1) 0%, transparent 40%);
+      z-index: -2;
+      pointer-events: none;
     }
     
     .container { 
-      max-width: 100%; 
+      max-width: 1200px; 
       margin: 0 auto; 
-      padding: 10px; 
+      padding: 20px; 
+      position: relative;
+      z-index: 1;
     }
     
+    /* Header stilizat dramatic */
     header { 
       text-align: center; 
-      padding: 15px 0; 
-      background-color: #16213e; 
-      margin-bottom: 20px; 
-      border-radius: 8px; 
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); 
+      padding: 40px 0; 
+      background: rgba(0, 0, 0, 0.85);
+      margin-bottom: 30px; 
+      position: relative;
+      border-bottom: 3px solid #ff0000;
+      box-shadow: 0 5px 20px rgba(255, 0, 0, 0.3);
     }
     
-    h1 { 
-      color: #ff5722; 
-      font-size: 2rem; 
-      margin-bottom: 10px; 
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 10%;
+      right: 10%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #ff0000, transparent);
+    }
+    
+    h1 {
+      font-family: 'Times New Roman', serif;
+      font-size: 5.5rem;
+      font-weight: bold;
+      color: #ff0000;
+      text-transform: uppercase;
+      letter-spacing: 10px;
+      text-shadow: 3px 3px 0 #000, 6px 6px 0 rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 0, 0, 0.6);
+      margin-bottom: 10px;
+      line-height: 1.1;
+      position: relative;
+      display: inline-block;
+    }
+    
+    h1::before, h1::after {
+      content: '♦';
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #ff0000;
+      font-size: 2.5rem;
+      opacity: 0.8;
+    }
+    
+    h1::before {
+      left: -50px;
+    }
+    
+    h1::after {
+      right: -50px;
     }
     
     h2 { 
-      color: #4cc9f0; 
-      margin: 15px 0; 
-      font-size: 1.5rem; 
+      color: #ff0000; 
+      margin: 20px 0; 
+      font-size: 1.8rem; 
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+      border-bottom: 1px solid rgba(255, 0, 0, 0.3);
+      padding-bottom: 10px;
     }
     
     h3 { 
-      color: #f72585; 
-      margin: 12px 0; 
-      font-size: 1.2rem; 
+      color: #ff4444; 
+      margin: 15px 0; 
+      font-size: 1.4rem; 
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
     
     h4 { 
-      color: #7209b7; 
-      margin: 10px 0; 
+      color: #ff6666; 
+      margin: 12px 0; 
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
     
     .screen { 
       display: none; 
-      background-color: #16213e; 
-      padding: 20px; 
-      border-radius: 10px; 
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); 
-      margin-bottom: 20px; 
+      background: rgba(0, 0, 0, 0.85);
+      padding: 30px; 
+      border-radius: 5px; 
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 0, 0, 0.3);
+      margin-bottom: 30px; 
+      border: 1px solid rgba(255, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .screen::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #ff0000, #aa0000, #ff0000);
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
     }
     
     .active { 
       display: block; 
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Efect de explozie pentru butoane */
+    @keyframes explode {
+      0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+      70% { box-shadow: 0 0 0 20px rgba(255, 0, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
     }
     
     .btn { 
       display: inline-block; 
-      background-color: #0f3460; 
+      background: linear-gradient(to bottom, #500000, #300000);
       color: white; 
-      padding: 12px 20px; 
+      padding: 10px 15px; 
       border: none; 
-      border-radius: 5px; 
+      border-radius: 3px; 
       cursor: pointer; 
       font-size: 16px; 
-      margin: 8px 5px; 
-      transition: background-color 0.3s; 
+      margin: 10px 5px; 
+      transition: all 0.3s; 
       width: 100%; 
       max-width: 300px; 
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(255, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(255,0,0,0.2), transparent);
+      z-index: -1;
     }
     
     .btn:hover { 
-      background-color: #1a5dad; 
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 0, 0, 0.5);
+    }
+    
+    .btn:active {
+      transform: translateY(1px);
+      animation: explode 0.5s forwards;
     }
     
     .btn-primary { 
-      background-color: #ff5722; 
+      background: linear-gradient(to bottom, #ff0000, #aa0000);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
     }
     
     .btn-primary:hover { 
-      background-color: #e64a19; 
+      background: linear-gradient(to bottom, #ff3333, #cc0000);
     }
     
     .form-group { 
-      margin-bottom: 20px; 
+      margin-bottom: 25px; 
     }
     
     label { 
       display: block; 
-      margin-bottom: 8px; 
+      margin-bottom: 10px; 
       font-weight: bold; 
-      color: #4cc9f0; 
+      color: #ff4444; 
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.9rem;
     }
     
     input[type="text"], 
     input[type="number"] { 
       width: 100%; 
-      padding: 12px; 
-      border: 1px solid #0f3460; 
-      border-radius: 5px; 
-      background-color: #1a1a2e; 
+      padding: 14px; 
+      border: 1px solid #500000; 
+      border-radius: 3px; 
+      background-color: rgba(20, 0, 0, 0.7); 
       color: white; 
       font-size: 16px; 
       margin-bottom: 10px; 
+      transition: all 0.3s;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    
+    input[type="text"]:focus, 
+    input[type="number"]:focus { 
+      outline: none;
+      border-color: #ff0000;
+      box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.3), inset 0 1px 3px rgba(0, 0, 0, 0.5);
     }
     
     .player-list { 
       list-style-type: none; 
-      margin: 20px 0; 
+      margin: 25px 0; 
     }
     
     .player-list li { 
-      padding: 12px; 
-      background-color: #1a1a2e; 
-      margin-bottom: 8px; 
-      border-radius: 5px; 
+      padding: 15px; 
+      background: rgba(30, 0, 0, 0.7); 
+      margin-bottom: 10px; 
+      border-radius: 3px; 
       display: flex; 
       justify-content: space-between; 
       align-items: center; 
-      border-left: 4px solid #4cc9f0; 
+      border-left: 4px solid #ff0000; 
+      transition: transform 0.2s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+    
+    .player-list li:hover {
+      transform: translateX(5px);
+      background: rgba(40, 0, 0, 0.8);
     }
     
     .role-config { 
-      margin: 15px 0; 
-      padding: 15px; 
-      background-color: #1a1a2e; 
+      margin: 20px 0; 
+      padding: 20px; 
+      background: rgba(30, 0, 0, 0.7); 
       border-radius: 5px; 
-      border: 1px solid #0f3460; 
+      border: 1px solid rgba(80, 0, 0, 0.5); 
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
     }
     
     .role-item { 
       display: flex; 
       justify-content: space-between; 
-      margin-bottom: 10px; 
+      margin-bottom: 15px; 
       align-items: center; 
       flex-wrap: wrap; 
+      gap: 10px;
     }
     
     .role-item input { 
       flex: 1; 
-      margin: 0 5px; 
+      min-width: 120px;
+    }
+    
+    .role-item button {
+      max-width: 100px;
     }
     
     .hidden { 
@@ -166,88 +310,279 @@
     
     #playerScreen { 
       text-align: center; 
-      padding: 30px 20px; 
+      padding: 40px 20px; 
     }
     
     .role-display { 
-      font-size: 24px; 
-      margin: 30px 0; 
-      padding: 25px; 
-      background: linear-gradient(135deg, #0f3460, #1a1a2e); 
-      border-radius: 10px; 
+      font-size: 2.2rem; 
+      margin: 40px 0; 
+      padding: 30px; 
+      background: linear-gradient(135deg, rgba(80, 0, 0, 0.8), rgba(30, 0, 0, 0.9)); 
+      border-radius: 5px; 
       display: inline-block; 
-      border: 2px solid #4cc9f0; 
-      box-shadow: 0 0 15px rgba(76, 201, 240, 0.5); 
-      color: #ff5722; 
+      border: 2px solid #ff0000;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.5); 
+      color: #ff0000; 
       font-weight: bold; 
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      position: relative;
+      overflow: hidden;
+      text-shadow: 2px 2px 3px rgba(0,0,0,0.8);
+    }
+    
+    .role-display::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        to bottom right,
+        rgba(255, 0, 0, 0) 0%,
+        rgba(255, 0, 0, 0.1) 50%,
+        rgba(255, 0, 0, 0) 100%
+      );
+      transform: rotate(30deg);
+      animation: shine 3s infinite linear;
+    }
+    
+    @keyframes shine {
+      0% { transform: translateX(-100%) rotate(30deg); }
+      100% { transform: translateX(100%) rotate(30deg); }
     }
     
     .instructions { 
-      background-color: #1a1a2e; 
-      padding: 15px; 
-      border-radius: 8px; 
-      margin: 15px 0; 
-      border-left: 4px solid #ff5722; 
+      background: rgba(30, 0, 0, 0.7); 
+      padding: 20px; 
+      border-radius: 5px; 
+      margin: 20px 0; 
+      border-left: 4px solid #ff0000; 
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
     }
     
     .instructions h4 { 
-      color: #ff5722; 
+      color: #ff0000; 
       margin-top: 0; 
+      margin-bottom: 15px;
+    }
+    
+    .instructions p {
+      margin-bottom: 10px;
+      padding-left: 10px;
+    }
+    
+    .instructions p:last-child {
+      margin-bottom: 0;
     }
     
     .connection-status { 
-      padding: 10px; 
-      border-radius: 5px; 
-      margin: 10px 0; 
+      padding: 12px; 
+      border-radius: 3px; 
+      margin: 15px 0; 
       text-align: center; 
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: rgba(198, 40, 40, 0.7);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
     }
     
     .connected { 
-      background-color: #2e7d32; 
-    }
-    
-    .disconnected { 
-      background-color: #c62828; 
+      background: rgba(236, 177, 15, 0.7); 
     }
     
     .room-code { 
-      font-size: 1.8rem; 
-      color: #ff5722; 
+      font-size: 2.2rem; 
+      color: #ff0000; 
       font-weight: bold; 
-      margin: 15px 0; 
-      padding: 10px; 
-      background-color: #1a1a2e; 
-      border-radius: 8px; 
+      margin: 20px 0; 
+      padding: 15px; 
+      background: rgba(30, 0, 0, 0.7); 
+      border-radius: 5px; 
       text-align: center; 
+      text-shadow: 2px 2px 3px rgba(0,0,0,0.8);
+      letter-spacing: 3px;
+      border: 1px solid rgba(255, 0, 0, 0.3);
+      display: inline-block;
+      min-width: 200px;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
     }
     
     .message-box { 
-      background-color: #f72585; 
-      color: #1a1a2e; 
-      padding: 10px; 
-      border-radius: 5px; 
-      margin-bottom: 20px; 
+      background: #ff0000; 
+      color: #fff; 
+      padding: 15px; 
+      border-radius: 3px; 
+      margin-bottom: 25px; 
       text-align: center; 
       font-weight: bold; 
       display: none; 
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
     }
     
-    /* Media queries for responsive design */
+    /* Efecte de focus și hover pentru butoanele de șters rol */
+    .role-item .btn {
+      max-width: 100px;
+      background: linear-gradient(to bottom, #800000, #600000);
+      padding: 10px 15px;
+      font-size: 14px;
+    }
+    
+    .role-item .btn:hover {
+      background: linear-gradient(to bottom, #a00000, #800000);
+    }
+    
+    /* Media queries pentru design responsive */
     @media (min-width: 768px) { 
       .btn { 
         width: auto; 
       } 
+      
       .role-item { 
         flex-wrap: nowrap; 
-      } 
+      }
+      
+      h1 {
+        font-size: 6.5rem;
+        letter-spacing: 15px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 3.5rem;
+        letter-spacing: 5px;
+      }
+      
+      h1::before, h1::after {
+        display: none;
+      }
+      
+      .screen {
+        padding: 20px 15px;
+      }
+      
+      .role-display {
+        font-size: 1.6rem;
+        padding: 20px;
+      }
+    }
+    
+    /* Efect de glont pentru butoane */
+    .bullet-hole {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #000;
+      border-radius: 50%;
+      border: 1px solid #333;
+      box-shadow: inset 0 0 3px rgba(255, 0, 0, 0.5);
+      pointer-events: none;
+      z-index: 10;
+    }
+    
+    /* Imagine de fundal cu poza ta + efecte mafiot */
+.mafia-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+
+    background: 
+        /* poza principală */
+        url("https://images.hdqwalls.com/download/mafia-2-definitive-edition-lm-1920x1080.jpg") center/cover no-repeat,
+
+        /* fum / haze */
+        radial-gradient(circle at 20% 30%, rgba(255, 0, 0, 0.15), transparent 70%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.08), transparent 60%),
+
+        /* spot de lumină */
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,0.05), transparent 80%),
+
+        /* efect grainy/noise */
+        repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.25) 0px, transparent 2px),
+
+        /* fallback dark overlay */
+        linear-gradient(to bottom, #0d0d0d, #000000);
+    
+    background-blend-mode: normal, screen, lighten, overlay, normal;
+}
+
+/* Optional: filtru suplimentar pentru textura cinematică */
+.mafia-background::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("https://www.transparenttextures.com/patterns/asfalt-dark.png");
+    opacity: 0.15;
+    mix-blend-mode: multiply;
+}
+
+    
+    /* Siluete de mafioți (create cu CSS) */
+    .mafia-silhouette {
+      position: fixed;
+      width: 200px;
+      height: 300px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 50% 50% 40% 40%;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+      z-index: -1;
+    }
+    
+    .mafia-silhouette::before {
+      content: '';
+      position: absolute;
+      top: 35%;
+      left: 40%;
+      width: 20px;
+      height: 20px;
+      background: #333;
+      border-radius: 50%;
+      box-shadow: 
+        30px 0 0 #333,
+        15px -20px 0 -3px #333,
+        15px 20px 0 -3px #333;
+    }
+    
+    .mafia-silhouette::after {
+      content: '';
+      position: absolute;
+      bottom: 10%;
+      left: 45%;
+      width: 10px;
+      height: 50px;
+      background: #333;
+      border-radius: 5px;
+      transform: rotate(30deg);
+      box-shadow: 20px -10px 0 0 #333;
+    }
+    
+    .mafia-silhouette-1 {
+      top: 10%;
+      left: 5%;
+    }
+    
+    .mafia-silhouette-2 {
+      bottom: 10%;
+      right: 5%;
+      transform: scaleX(-1);
     }
   </style>
 </head>
 <body>
+  <div class="mafia-background"></div>
+  
   <div class="container">
     <header>
-      <h1>Joc Mafia</h1>
-      <p>O experiență interactivă de joc social</p>
+      <h1>MAFIA</h1>
     </header>
 
     <div id="connectionStatus" class="connection-status disconnected">Deconectat</div>
@@ -324,6 +659,7 @@
   </div>
 
   <script type="module">
+    // Firebase imports and initialization (unchanged)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, doc, setDoc, onSnapshot, collection, getDoc, updateDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
@@ -644,6 +980,33 @@
       } 
       return a; 
     }
+    
+    // Efecte speciale pentru butoane
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        // Efect de explozie
+        this.style.animation = 'none';
+        setTimeout(() => {
+          this.style.animation = 'explode 0.5s forwards';
+        }, 10);
+        
+        // Efect de glonț
+        const bulletHole = document.createElement('div');
+        bulletHole.className = 'bullet-hole';
+        document.body.appendChild(bulletHole);
+        
+        const rect = this.getBoundingClientRect();
+        const x = rect.left + Math.random() * rect.width;
+        const y = rect.top + Math.random() * rect.height;
+        
+        bulletHole.style.left = `${x}px`;
+        bulletHole.style.top = `${y}px`;
+        
+        setTimeout(() => {
+          document.body.removeChild(bulletHole);
+        }, 2000);
+      });
+    });
   </script>
 </body>
 </html>
