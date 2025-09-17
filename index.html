@@ -875,18 +875,13 @@
       playersList.innerHTML = '';
       players.sort((a, b) => a.joinedAt - b.joinedAt);
 
-      players.forEach(p => {
+       players.forEach(p => {
         const li = document.createElement('li');
-        let roleText = ' (Fără rol)';
-        
-        if (p.role) {
-          roleText = ` (${p.role})`;
-        } else if (p.isHost) {
-          roleText = ' (Povestitor)';
-        }
-        
-        li.textContent = p.name + roleText;
-        playersList.appendChild(li);
+        let roleText = '';
+         if (p.isHost) {
+           roleText = ' (Povestitor)';
+          } else if (p.role) {
+             roleText = ` (${p.role})`;   }
       });
     }
 
