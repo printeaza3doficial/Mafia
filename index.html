@@ -6,6 +6,7 @@
     <title>Joc Mafia - Camere Multiplayer</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -221,6 +222,17 @@
             border-radius: 8px;
             text-align: center;
         }
+
+        #messageBox {
+            background-color: #f72585;
+            color: #1a1a2e;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
         
         @media (min-width: 768px) {
             .btn {
@@ -242,6 +254,7 @@
         
         <div id="connectionStatus" class="connection-status disconnected">Deconectat</div>
         
+        <!-- Ecranul principal -->
         <div id="mainScreen" class="screen active">
             <h2>Bun venit!</h2>
             <p>Pentru a începe, fie creează o cameră nouă, fie alătură-te uneia existente.</p>
@@ -255,8 +268,10 @@
             <button id="joinRoomBtn" class="btn">Alătură-te Camerei</button>
         </div>
         
+        <!-- Ecranul de creare cameră -->
         <div id="createRoomScreen" class="screen">
             <h2>Creează o Cameră Nouă</h2>
+            <div id="messageBox" class="message-box"></div>
             <div class="form-group">
                 <label for="hostName">Numele tău:</label>
                 <input type="text" id="hostName" placeholder="Introdu numele tău">
@@ -265,8 +280,10 @@
             <button id="backToMainBtn" class="btn">Înapoi</button>
         </div>
         
+        <!-- Ecranul de alăturare cameră -->
         <div id="joinRoomScreen" class="screen">
             <h2>Alătură-te unei Camere</h2>
+            <div id="messageBox2" class="message-box"></div>
             <div class="form-group">
                 <label for="playerName">Numele tău:</label>
                 <input type="text" id="playerName" placeholder="Introdu numele tău">
@@ -279,11 +296,14 @@
             <button id="backToMainBtn2" class="btn">Înapoi</button>
         </div>
         
+        <!-- Ecranul de așteptare -->
         <div id="waitingScreen" class="screen">
             <h2>Camera: <span id="displayRoomCode" class="room-code">-</span></h2>
+            <p>ID-ul tău de jucător: <span id="displayPlayerId"></span></p>
             <h3>Jucători în cameră:</h3>
             <ul id="playersList" class="player-list">
-                </ul>
+                <!-- Lista jucătorilor va fi populată din JavaScript -->
+            </ul>
             
             <div id="hostControls" class="hidden">
                 <h3>Control Host</h3>
@@ -291,7 +311,8 @@
                 <div class="role-config">
                     <h4>Configurează Rolurile</h4>
                     <div id="rolesContainer">
-                        </div>
+                        <!-- Rolurile vor fi adăugate din JavaScript -->
+                    </div>
                     <button id="addRoleBtn" class="btn">Adaugă Rol</button>
                 </div>
                 
@@ -304,6 +325,7 @@
             </div>
         </div>
         
+        <!-- Ecranul jucătorului cu rolul atribuit -->
         <div id="playerScreen" class="screen">
             <h2>Salut, <span id="playerNameDisplay">Jucător</span>!</h2>
             <p>Rolul tău în acest joc este:</p>
@@ -314,20 +336,17 @@
 
     <script>
         // Configurare Firebase
-        // !! INSEREAZĂ PROPRIUL TĂU API KEY DE AICI !!
-        const firebaseConfig = {
-          apiKey: "AIzaSyBFchkNH-ccIDfSF8QGJYlGfRi1giNm08A",
-          authDomain: "mafia-ffa2d.firebaseapp.com",
-          projectId: "mafia-ffa2d",
-          storageBucket: "mafia-ffa2d.firebasestorage.app",
-          messagingSenderId: "34869116142",
-          appId: "1:34869116142:web:5b77e070663e64436bc7ff",
-          measurementId: "G-FY6TLT94X9"
-        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // Inițializare Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(app);
+        const auth = firebase.auth(app);
+
+        // Activare persistență offline
+        db.enablePersistence().catch(err => console.log('Eroare la activarea persistenței: ', err));
         
         // Variabile globale
         let currentRoomCode = '';
@@ -358,12 +377,21 @@
         const rolesContainer = document.getElementById('rolesContainer');
         const assignedRole = document.getElementById('assignedRole');
         const playerNameDisplay = document.getElementById('playerNameDisplay');
+        const displayPlayerId = document.getElementById('displayPlayerId');
+        const messageBox = document.getElementById('messageBox');
+        const messageBox2 = document.getElementById('messageBox2');
         
         // Butoane
         document.getElementById('createRoomBtn').addEventListener('click', () => showScreen(createRoomScreen));
         document.getElementById('joinRoomBtn').addEventListener('click', () => showScreen(joinRoomScreen));
-        document.getElementById('backToMainBtn').addEventListener('click', () => showScreen(mainScreen));
-        document.getElementById('backToMainBtn2').addEventListener('click', () => showScreen(mainScreen));
+        document.getElementById('backToMainBtn').addEventListener('click', () => {
+            messageBox.style.display = 'none';
+            showScreen(mainScreen);
+        });
+        document.getElementById('backToMainBtn2').addEventListener('click', () => {
+            messageBox2.style.display = 'none';
+            showScreen(mainScreen);
+        });
         
         document.getElementById('createRoomConfirmBtn').addEventListener('click', createRoom);
         document.getElementById('joinRoomConfirmBtn').addEventListener('click', joinRoom);
@@ -377,12 +405,16 @@
             screen.classList.add('active');
         }
         
+        function showMessage(element, message) {
+            element.textContent = message;
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
         function generateRoomCode() {
             return Math.floor(1000 + Math.random() * 9000).toString();
-        }
-        
-        function generatePlayerId() {
-            return Math.random().toString(36).substring(2) + Date.now().toString(36);
         }
         
         function updateConnectionStatus(connected) {
@@ -395,20 +427,59 @@
             }
         }
         
+        // Inițializarea autentificării
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                playerId = user.uid;
+                updateConnectionStatus(true);
+                displayPlayerId.textContent = playerId;
+                console.log("Autentificare reușită! ID utilizator:", playerId);
+            } else {
+                updateConnectionStatus(false);
+                console.log("Utilizator deconectat. Așteptăm re-autentificarea...");
+            }
+        });
+
+        async function ensureAuthenticated() {
+            if (!auth.currentUser) {
+                if (initialAuthToken) {
+                    await auth.signInWithCustomToken(initialAuthToken);
+                } else {
+                    await auth.signInAnonymously();
+                }
+            }
+            playerId = auth.currentUser.uid;
+        }
+        
         async function createRoom() {
+            const btn = document.getElementById('createRoomConfirmBtn');
+            btn.textContent = 'Se încarcă...';
+            btn.disabled = true;
+            
+            try {
+                await ensureAuthenticated();
+            } catch (error) {
+                console.error('Eroare la autentificare:', error);
+                showMessage(messageBox, 'Eroare la autentificare. Încearcă să reîncarci pagina.');
+                btn.textContent = 'Creează Cameră';
+                btn.disabled = false;
+                return;
+            }
+
             const name = hostNameInput.value.trim();
             if (!name) {
-                alert('Introdu un nume!');
+                showMessage(messageBox, 'Introdu un nume!');
+                btn.textContent = 'Creează Cameră';
+                btn.disabled = false;
                 return;
             }
             
-            playerName = name;
-            isHost = true;
-            playerId = generatePlayerId();
-            currentRoomCode = generateRoomCode();
-            
             try {
-                roomRef = db.collection('rooms').doc(currentRoomCode);
+                playerName = name;
+                isHost = true;
+                currentRoomCode = generateRoomCode();
+                
+                roomRef = db.collection(`artifacts/${appId}/public/data/rooms`).doc(currentRoomCode);
                 await roomRef.set({
                     code: currentRoomCode,
                     hostId: playerId,
@@ -438,13 +509,15 @@
                 
                 // Ascultă pentru schimbări de stare (în caz că host-ul e și jucător)
                 roomUnsubscribe = roomRef.onSnapshot(doc => {
-                    const roomData = doc.data();
-                    if (roomData.status === 'started' && roomData.players) {
-                        const playerData = roomData.players[playerId];
-                        if (playerData && playerData.role) {
-                            playerNameDisplay.textContent = playerName;
-                            assignedRole.textContent = playerData.role;
-                            showScreen(playerScreen);
+                    if (doc.exists) {
+                        const roomData = doc.data();
+                        if (roomData.status === 'started' && roomData.players) {
+                            const playerData = roomData.players[playerId];
+                            if (playerData && playerData.role) {
+                                playerNameDisplay.textContent = playerName;
+                                assignedRole.textContent = playerData.role;
+                                showScreen(playerScreen);
+                            }
                         }
                     }
                 });
@@ -458,44 +531,67 @@
                 addRoleRow('Civil', 4);
                 
                 showScreen(waitingScreen);
-                updateConnectionStatus(true);
                 
             } catch (error) {
                 console.error('Eroare la crearea camerei:', error);
-                alert('A apărut o eroare. Încearcă din nou.');
+                showMessage(messageBox, 'A apărut o eroare. Încearcă din nou.');
+            } finally {
+                btn.textContent = 'Creează Cameră';
+                btn.disabled = false;
             }
         }
         
         async function joinRoom() {
+            const btn = document.getElementById('joinRoomConfirmBtn');
+            btn.textContent = 'Se încarcă...';
+            btn.disabled = true;
+            
+            try {
+                await ensureAuthenticated();
+            } catch (error) {
+                console.error('Eroare la autentificare:', error);
+                showMessage(messageBox2, 'Eroare la autentificare. Încearcă să reîncarci pagina.');
+                btn.textContent = 'Alătură-te';
+                btn.disabled = false;
+                return;
+            }
+            
             const name = playerNameInput.value.trim();
             const code = roomCodeInput.value.trim();
             
             if (!name) {
-                alert('Introdu un nume!');
+                showMessage(messageBox2, 'Introdu un nume!');
+                btn.textContent = 'Alătură-te';
+                btn.disabled = false;
                 return;
             }
             
             if (!code) {
-                alert('Introdu codul camerei!');
+                showMessage(messageBox2, 'Introdu codul camerei!');
+                btn.textContent = 'Alătură-te';
+                btn.disabled = false;
                 return;
             }
             
             playerName = name;
             currentRoomCode = code;
             isHost = false;
-            playerId = generatePlayerId();
             
             try {
-                roomRef = db.collection('rooms').doc(currentRoomCode);
+                roomRef = db.collection(`artifacts/${appId}/public/data/rooms`).doc(currentRoomCode);
                 const roomDoc = await roomRef.get();
                 
                 if (!roomDoc.exists) {
-                    alert('Camera nu există. Verifică codul.');
+                    showMessage(messageBox2, 'Camera nu există. Verifică codul.');
+                    btn.textContent = 'Alătură-te';
+                    btn.disabled = false;
                     return;
                 }
                 
                 if (roomDoc.data().status !== 'waiting') {
-                    alert('Jocul a început deja în această cameră.');
+                    showMessage(messageBox2, 'Jocul a început deja în această cameră.');
+                    btn.textContent = 'Alătură-te';
+                    btn.disabled = false;
                     return;
                 }
                 
@@ -535,11 +631,13 @@
                 playerWaiting.classList.remove('hidden');
                 
                 showScreen(waitingScreen);
-                updateConnectionStatus(true);
                 
             } catch (error) {
                 console.error('Eroare la alăturarea la cameră:', error);
-                alert('A apărut o eroare. Încearcă din nou.');
+                showMessage(messageBox2, 'A apărut o eroare. Încearcă din nou.');
+            } finally {
+                btn.textContent = 'Alătură-te';
+                btn.disabled = false;
             }
         }
         
@@ -592,12 +690,12 @@
             const playerCount = playersSnapshot.size;
             
             if (rolesConfig.length < playerCount) {
-                alert(`Nu sunt suficiente roluri. Ai ${rolesConfig.length} roluri dar ${playerCount} jucători.`);
+                showMessage(messageBox, `Nu sunt suficiente roluri. Ai ${rolesConfig.length} roluri dar ${playerCount} jucători.`);
                 return;
             }
             
             if (rolesConfig.length > playerCount) {
-                alert(`Prea multe roluri. Ai ${rolesConfig.length} roluri dar doar ${playerCount} jucători.`);
+                showMessage(messageBox, `Prea multe roluri. Ai ${rolesConfig.length} roluri dar doar ${playerCount} jucători.`);
                 return;
             }
             
@@ -606,12 +704,12 @@
                 [rolesConfig[i], rolesConfig[j]] = [rolesConfig[j], rolesConfig[i]];
             }
             
-            alert('Rolurile au fost configurate! Apasă "Start Joc" pentru a distribui rolurile.');
+            showMessage(messageBox, 'Rolurile au fost configurate! Apasă "Start Joc" pentru a distribui rolurile.');
         }
         
         async function startGame() {
             if (rolesConfig.length === 0) {
-                alert('Configurează mai întâi rolurile!');
+                showMessage(messageBox, 'Configurează mai întâi rolurile!');
                 return;
             }
             
@@ -634,7 +732,7 @@
                 // Logica pentru afișarea rolului se va declanșa prin listener-ul onSnapshot
             } catch (error) {
                 console.error('Eroare la start joc:', error);
-                alert('A apărut o eroare. Încearcă din nou.');
+                showMessage(messageBox, 'A apărut o eroare. Încearcă din nou.');
             }
         }
         
@@ -657,7 +755,6 @@
 
         // Inițializare
         addRoleRow();
-        updateConnectionStatus(false);
     </script>
 </body>
 </html>
